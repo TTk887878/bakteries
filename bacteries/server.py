@@ -15,6 +15,7 @@ pygame.init()
 WIDTH_ROOM, HEIGHT_ROOM = (4000, 4000)
 WIDTH_SERVER, HEIGHT_SERVER = (300, 300)
 FPS = 100
+
 skreem = pygame.display.set_mode((WIDTH_SERVER, HEIGHT_SERVER))
 pygame.display.set_caption("serveer")
 clock = pygame.time.Clock()
@@ -71,8 +72,12 @@ main_socket.setblocking(False)  # 5 непрерывность,не ожидае
 main_socket.listen(5)  # 6 прослушка входящих соединений 5 одновремменно
 print("сокет создан")
 players = {}
-while True:
+run = True
+while run:
     clock.tick(FPS)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
     try:
         new_sock, addr = main_socket.accept()
         print("подключился", addr, new_sock)
@@ -102,3 +107,17 @@ while True:
             s.query(Player).filter(Player.id == id).delete()
             s.commit()
             print("сокет закрыт")
+    skreem.fill("black")
+    for id in list(players):
+        player = players[id]
+        x = player.x * WIDTH_SERVER // WIDTH_ROOM
+        y = player.y * WIDTH_SERVER // WIDTH_ROOM
+        size = player.size * WIDTH_SERVER // WIDTH_ROOM
+        pygame.draw.circle(skreem,"yellow",(x,y),size)
+        pygame.display.update()
+
+
+pygame.quit()
+main_socket.close()
+s.query(Player).delete()
+s.commit()
